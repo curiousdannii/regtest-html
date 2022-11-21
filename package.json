@@ -1,0 +1,31 @@
+{
+  "name": "regtest-html",
+  "version": "0.1.0",
+  "description": "RegTest compatible test framework for HTML interpreters",
+  "repository": "curiousdannii/regtest-html",
+  "keywords": [
+    "interactive-fiction",
+    "testing"
+  ],
+  "author": "Dannii Willis <curiousdannii@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/curiousdannii/regtest-html/issues"
+  },
+  "homepage": "https://github.com/curiousdannii/regtest-html#readme",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1",
+    "minimist": "^1.2.7",
+    "puppeteer": "^19.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.26.0"
+  },
+  "scripts": {
+    "test": "./tests/runtests.sh"
+  }
+}
