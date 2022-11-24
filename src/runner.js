@@ -91,10 +91,19 @@ export class Runner {
         let checks = []
 
         const process_delayed_checks = () => {
-            for (const check of checks) {
-                if (!this.buffertext.includes(check)) {
+            for (let check of checks) {
+                const inverted = check.startsWith('!')
+                if (inverted) {
+                    check = check.substring(1)
+                }
+                const found = this.buffertext.includes(check)
+                if (!found && !inverted) {
                     this.errors++
                     console.error(`Literal check "${check}": not found`)
+                }
+                else if (found && inverted) {
+                    this.errors++
+                    console.error(`Inverted literal check "${check}": should not be found`)
                 }
             }
         }
