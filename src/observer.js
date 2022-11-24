@@ -14,15 +14,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach observers for GlkOte
 
     const glkote_buffer_text_observer = new MutationObserver(records => {
-        regtest_log('glkote_buffer_text_observer records length', records.length)
+        // Results from the previous BufferLine
+        const span_results = []
+        const div_results = []
+        let last_buffer_line
         for (const record of records) {
-            if (record.type === 'characterData') {
+            if (record.type === 'childList') {
+                for (const node of record.addedNodes) {
+                    const $node = $(node)
+                    if ($node.is('span')) {
+                        span_results.push($node.text())
+                    }
+                    else if ($node.hasClass('BufferLine')) {
+                        div_results.push($node.text())
+                        last_buffer_line = $node
+                    }
+                }
             }
+        }
+        const results = span_results.join('') + (span_results.length ? '\n' : '') + div_results.join('\n')
+        regtest_data({
+            type: 'buffertext',
+            text: results,
+        })
+
+        // And watch for more additions to the last BufferLine
+        if (last_buffer_line) {
+            glkote_buffer_text_observer.observe(last_buffer_line[0], {childList: true})
         }
     })
 
     const glkote_input_observer = new MutationObserver(records => {
-        regtest_log('glkote_input_observer')
+        for (const record of records) {
+            if (record.type === 'attributes') {
+                const input = $(record.target)
+                if (input.is(':disabled')) {
+                    continue
+                }
+                regtest_data({
+                    type: 'input_requested',
+                    data: {
+                        type: input.hasClass('LineInput') ? 'line' : 'char',
+                    },
+                })
+            }
+        }
     })
 
     const glkote_window_obsever = new MutationObserver(records => {
@@ -40,7 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .join('\n'),
                         })
                         // And then watch for future additions
-                        glkote_buffer_text_observer.observe($node.find('.BufferWindowInner')[0], {characterData: true, subtree: true})
+                        glkote_buffer_text_observer.observe($node.find('.BufferWindowInner')[0], {childList: true})
+                        const last_line = $node.find('.BufferLine').last()[0]
+                        if (last_line) {
+                            glkote_buffer_text_observer.observe(last_line, {childList: true})
+                        }
 
                         // Watch the Input
                         const input = $node.find('.Input')

@@ -14,7 +14,6 @@ import path from 'path'
 
 import {HttpServer} from 'http-server'
 import puppeteer from 'puppeteer'
-import { stdout } from 'process'
 
 export class Runner {
     constructor(testfile_data, options) {
@@ -137,13 +136,12 @@ export class Runner {
                     })
                 }, line.substring(1).trim())
             }
+            // Skip other tests
+            else if (line.startsWith('* ')) {
+                break
+            }
             else {
                 checks.push(line)
-            }
-
-            // Skip other tests
-            if (line.startsWith('* ')) {
-                break
             }
         }
 
