@@ -113,7 +113,10 @@ export class Runner {
                 continue
             }
 
-            if (line.startsWith('>')) {
+            if (line.startsWith('>{include}')) {
+                await this.run_test_script(line.substring(10).trim())
+            }
+            else if (line.startsWith('>')) {
                 const requested_event = await this.input_request_handler
 
                 // Make a new promise to await
@@ -124,17 +127,27 @@ export class Runner {
                 checks = []
 
                 // Check the requested event type
-                if (requested_event.type !== 'line') {
+                let type = 'line'
+                let command = line.substring(1).trim()
+                if (requested_event.type === 'fileref_prompt') {
+                    if (!line.startsWith('>{fileref_prompt}')) {
+                        throw new Error('Game is not expecting fileref_prompt input')
+                    }
+                    type = 'fileref_prompt'
+                    command = line.substring(17).trim()
+                }
+                else if (requested_event.type !== 'line') {
                     throw new Error('Game is not expecting line input')
                 }
 
                 // Send the input
-                await this.page.evaluate(command => {
+
+                await this.page.evaluate((type, command) => {
                     regtest_event({
-                        type: 'line',
+                        type,
                         value: command,
                     })
-                }, line.substring(1).trim())
+                }, type, command)
             }
             // Skip other tests
             else if (line.startsWith('* ')) {

@@ -95,6 +95,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             })
                         }
                     }
+
+                    if ($node.is('#dialog_frame')) {
+                        regtest_data({
+                            type: 'input_requested',
+                            data: {
+                                type: 'fileref_prompt',
+                            },
+                        })
+                    }
                 }
             }
         }
@@ -108,6 +117,24 @@ document.addEventListener('DOMContentLoaded', () => {
             $('.Input.LineInput')
                 .val(data.value)
                 .trigger(jQuery.Event('keypress', {which: 13}))
+        }
+        if (data.type === 'fileref_prompt') {
+            // Now to fill in the dialog form...
+            const accept = $('#dialog_accept')
+            if (accept.text() === 'Save') {
+                $('#dialog_infield').val(data.value)
+            }
+            else {
+                const test = new RegExp(`^${data.value}\\s`)
+                const options = $('#dialog_select option')
+                for (const option of options) {
+                    const $option = $(option)
+                    if (test.test($option.text())) {
+                        $option.prop('selected', true)
+                    }
+                }
+            }
+            accept.click()
         }
     }
 
