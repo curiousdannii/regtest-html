@@ -31,6 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
+
+            // Scroll the buffer window down
+            const target = $(record.target)
+            if (target.hasClass('BufferWindowInner')) {
+                target.parent().scrollTop(target.height())
+            }
         }
         const results = span_results.join('') + (span_results.length ? '\n' : '') + div_results.join('\n')
         regtest_data({
@@ -81,9 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (last_line) {
                             glkote_buffer_text_observer.observe(last_line, {childList: true})
                         }
+                    }
 
-                        // Watch the Input
-                        const input = $node.find('.Input')
+                    // Watch the Input (could be in a grid window too)
+                    const input = $node.find('.Input')
+                    if (input.length) {
                         glkote_input_observer.observe(input[0], {attributeFilter: ['disabled']})
                         // And send its current state
                         if (!input.prop('disabled')) {
@@ -116,7 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.type === 'line') {
             $('.Input.LineInput')
                 .val(data.value)
-                .trigger(jQuery.Event('keypress', {which: 13}))
+                .trigger(code_to_event('return'))
+        }
+        if (data.type === 'char') {
+            $('.Input:not(:disabled)')
+                .trigger(code_to_event(data.value))
         }
         if (data.type === 'fileref_prompt') {
             // Now to fill in the dialog form...
@@ -139,3 +151,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 })
+
+// Turn a GlkOte keyboard code into a keyboard event
+const KEY_NAMES_TO_CODES = {
+    delete: 8, // Backspace to be precise
+    down: 40,
+    end: 35,
+    escape: 27,
+    func1: 112,
+    func2: 113,
+    func3: 114,
+    func4: 115,
+    func5: 116,
+    func6: 117,
+    func7: 118,
+    func8: 119,
+    func9: 120,
+    func10: 121,
+    func11: 122,
+    func12: 123,
+    home: 36,
+    left: 37,
+    pagedown: 34,
+    pageup: 33,
+    return: 13,
+    right: 39,
+    tab: 9,
+    up: 38,
+}
+function code_to_event(code) {
+    let event_type = 'keypress'
+    if (KEY_NAMES_TO_CODES[code]) {
+        event_type = code === 'return' ? 'keypress' : 'keydown'
+        code = KEY_NAMES_TO_CODES[code]
+    }
+    else {
+        if (code === 'space') {
+            code === ' '
+        }
+        code = code.charCodeAt(0)
+    }
+    return jQuery.Event(event_type, {which: code})
+}

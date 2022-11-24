@@ -17,16 +17,23 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "bin": {
+    "regtest": "bin/regtest.js"
+  },
   "dependencies": {
     "http-server": "^14.1.1",
     "minimist": "^1.2.7",
-    "puppeteer": "^19.2.0"
+    "puppeteer": "^19.3.0"
   },
   "devDependencies": {
-    "eslint": "^8.26.0"
+    "eslint": "^8.28.0"
   },
   "scripts": {
     "lint": "eslint .",
     "test": "./tests/runtests.sh"
-  }
+  },
+  "files": [
+    "bin/*.js",
+    "src/*.js"
+  ]
 }

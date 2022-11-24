@@ -17,9 +17,7 @@ import puppeteer from 'puppeteer'
 
 export class Runner {
     constructor(testfile_data, options) {
-        this.buffertext = ''
         this.errors = 0
-        this.input_request_handler = new Promise(resolve => this.input_request = resolve)
         this.list_of_tests = []
         this.options = options
         this.testfile = testfile_data.split(/\n/g).map(line => line.trim())
@@ -81,7 +79,9 @@ export class Runner {
 
     async run_one_test(test) {
         console.log(`* ${test}`)
-        await this.page.goto(`${this.options.interpreter_url}?story=${this.options.gamefile_url}`)
+        this.buffertext = ''
+        this.input_request_handler = new Promise(resolve => this.input_request = resolve)
+        await this.page.goto(`${this.options.interpreter_url}?story=${this.options.gamefile_url}&do_vm_autosave`)
         await this.run_test_script(test)
     }
 
@@ -120,10 +120,20 @@ export class Runner {
                 const requested_event = await this.input_request_handler
 
                 // Make a new promise to await
-                this.input_request_handler = new Promise(resolve => this.input_request = resolve)
+                this.input_request_handler = new Promise((resolve, reject) => {
+                    const timer = setTimeout(async () => {
+                        //await fs.writeFile('error.pdf', await this.page.pdf())
+                        reject(new Error('Timed out awaiting output'))
+                    }, 1000 * this.options.timeout)
+                    this.input_request = data => {
+                        clearTimeout(timer)
+                        resolve(data)
+                    }
+                })
 
                 // Process the delayed checks
                 process_delayed_checks()
+                this.buffertext = ''
                 checks = []
 
                 // Check the requested event type
@@ -135,6 +145,13 @@ export class Runner {
                     }
                     type = 'fileref_prompt'
                     command = line.substring(17).trim()
+                }
+                else if (requested_event.type === 'char') {
+                    if (!line.startsWith('>{char}')) {
+                        throw new Error('Game is not expecting char input')
+                    }
+                    type = 'char'
+                    command = line.substring(7).trim()
                 }
                 else if (requested_event.type !== 'line') {
                     throw new Error('Game is not expecting line input')

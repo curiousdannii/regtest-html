@@ -34,6 +34,7 @@ const options = {
     port: 8080,
     tests: argv._.slice(1),
     testfile_path,
+    timeout: parseInt(argv.t || argv.timeout || '1', 10),
     verbose: argv.v || argv.verbose,
     //vital: argv.vital,
 }
