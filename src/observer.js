@@ -193,3 +193,7 @@ function code_to_event(code) {
     }
     return jQuery.Event(event_type, {which: code})
 }
+
+window.addEventListener('unhandledrejection', function(event) {
+    regtest_log('Unhandled promise rejection', event.reason)
+})

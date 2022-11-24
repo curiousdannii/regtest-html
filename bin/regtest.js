@@ -31,6 +31,7 @@ const options = {
     gamefile_path: argv.g || argv.game,
     interpreter_path: argv.i || argv.interpreter,
     //list: argv.l || argv.list,
+    pdf: argv.pdf,
     port: 8080,
     tests: argv._.slice(1),
     testfile_path,

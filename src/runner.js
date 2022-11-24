@@ -77,10 +77,26 @@ export class Runner {
         }
     }
 
+    make_input_request_handler() {
+        this.input_request_handler = new Promise((resolve, reject) => {
+            const timer = setTimeout(async () => {
+                if (this.options.pdf) {
+                    await fs.writeFile('error.pdf', await this.page.pdf())
+                }
+                reject(new Error('Timed out awaiting output'))
+            }, 1000 * this.options.timeout)
+            this.input_request = data => {
+                clearTimeout(timer)
+                resolve(data)
+            }
+        })
+    }
+
     async run_one_test(test) {
         console.log(`* ${test}`)
         this.buffertext = ''
-        this.input_request_handler = new Promise(resolve => this.input_request = resolve)
+        this.make_input_request_handler()
+        this.waiting_for_final_text = 0
         await this.page.goto(`${this.options.interpreter_url}?story=${this.options.gamefile_url}&do_vm_autosave`)
         await this.run_test_script(test)
     }
@@ -90,7 +106,7 @@ export class Runner {
         let found_the_test = false
         let checks = []
 
-        const process_delayed_checks = () => {
+        const process_delayed_checks = async () => {
             for (let check of checks) {
                 const inverted = check.startsWith('!')
                 if (inverted) {
@@ -100,10 +116,16 @@ export class Runner {
                 if (!found && !inverted) {
                     this.errors++
                     console.error(`Literal check "${check}": not found`)
+                    if (this.options.pdf) {
+                        await fs.writeFile('error.pdf', await this.page.pdf())
+                    }
                 }
                 else if (found && inverted) {
                     this.errors++
                     console.error(`Inverted literal check "${check}": should not be found`)
+                    if (this.options.pdf) {
+                        await fs.writeFile('error.pdf', await this.page.pdf())
+                    }
                 }
             }
         }
@@ -129,19 +151,10 @@ export class Runner {
                 const requested_event = await this.input_request_handler
 
                 // Make a new promise to await
-                this.input_request_handler = new Promise((resolve, reject) => {
-                    const timer = setTimeout(async () => {
-                        //await fs.writeFile('error.pdf', await this.page.pdf())
-                        reject(new Error('Timed out awaiting output'))
-                    }, 1000 * this.options.timeout)
-                    this.input_request = data => {
-                        clearTimeout(timer)
-                        resolve(data)
-                    }
-                })
+                this.make_input_request_handler()
 
                 // Process the delayed checks
-                process_delayed_checks()
+                await process_delayed_checks()
                 this.buffertext = ''
                 checks = []
 
@@ -184,7 +197,14 @@ export class Runner {
             }
         }
 
-        process_delayed_checks()
+        // We may need to wait for some text to be sent
+        if (checks.length) {
+            if (!this.buffertext) {
+                this.waiting_for_final_text = 1
+                await this.input_request_handler
+            }
+            await process_delayed_checks()
+        }
     }
 
     async setup_puppeteer() {
@@ -201,6 +221,9 @@ export class Runner {
                 this.buffertext += data.text
                 if (this.options.verbose) {
                     process.stdout.write(data.text)
+                }
+                if (this.waiting_for_final_text) {
+                    this.input_request()
                 }
             }
 
