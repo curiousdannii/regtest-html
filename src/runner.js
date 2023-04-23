@@ -44,7 +44,14 @@ export class Runner {
             process.exit()
         }
         const cwd = process.cwd()
-        options.interpreter_url = `http://localhost:${options.port}/${path.relative(cwd, options.interpreter_path)}`
+        // If the interpreter path is not already a URL, then construct it
+        try {
+            new URL(options.interpreter_path)
+            options.interpreter_url = options.interpreter_path
+        }
+        catch (_) {
+            options.interpreter_url = `http://localhost:${options.port}/${path.relative(cwd, options.interpreter_path)}`
+        }
         options.gamefile_url = options.gamefile_path ? `http://localhost:${options.port}/${path.relative(cwd, options.gamefile_path)}` : ''
 
         if (!options.tests || !options.tests.length) {
@@ -139,8 +146,8 @@ export class Runner {
                 continue
             }
 
-            // Skip blank lines
-            if (line === '') {
+            // Skip blank lines and comments
+            if (line === '' || line.startsWith('#')) {
                 continue
             }
 

@@ -1,6 +1,6 @@
 {
   "name": "regtest-html",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "RegTest compatible test framework for HTML interpreters",
   "repository": "curiousdannii/regtest-html",
   "keywords": [
