@@ -7,4 +7,4 @@ echo Praxix
 echo Advent
 ./bin/regtest.js -i tests/parchment.html tests/advent.z5.regtest
 echo Inputeventtest
-./bin/regtest.js -i tests/parchment.html tests/inputeventtest.ulx.regtest chars
+./bin/regtest.js -i tests/parchment.html -t 3 tests/inputeventtest.ulx.regtest

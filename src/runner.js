@@ -135,6 +135,10 @@ export class Runner {
                     }
                 }
             }
+
+            // Clear
+            this.buffertext = ''
+            checks = []
         }
 
         for (const line of this.testfile) {
@@ -154,6 +158,10 @@ export class Runner {
             if (line.startsWith('>{include}')) {
                 await this.run_test_script(line.substring(10).trim())
             }
+            else if (line.startsWith('>{timer}')) {
+                // Process the delayed checks
+                await process_delayed_checks()
+            }
             else if (line.startsWith('>')) {
                 const requested_event = await this.input_request_handler
 
@@ -162,8 +170,6 @@ export class Runner {
 
                 // Process the delayed checks
                 await process_delayed_checks()
-                this.buffertext = ''
-                checks = []
 
                 // Check the requested event type
                 let type = 'line'
