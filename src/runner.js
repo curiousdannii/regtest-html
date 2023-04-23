@@ -180,7 +180,24 @@ export class Runner {
                         throw new Error('Game is not expecting char input')
                     }
                     type = 'char'
-                    command = line.substring(7).trim()
+                    if (line === '>{char}') {
+                        command = 'return'
+                    }
+                    else {
+                        command = line.substring(7)
+                    }
+                    if (/^ +$/.test(command)) {
+                        command = ' '
+                    }
+                    else {
+                        command = command.trim()
+                    }
+                    if (/^\d+$/.test(command)) {
+                        command = parseInt(command, 10)
+                    }
+                    else if (/^0[x][0-9a-f]+$/i.test(command)) {
+                        command = String.fromCodePoint(parseInt(command.substring(2), 16))
+                    }
                 }
                 else if (requested_event.type !== 'line') {
                     throw new Error('Game is not expecting line input')
