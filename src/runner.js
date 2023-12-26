@@ -238,7 +238,7 @@ export class Runner {
     }
 
     async setup_puppeteer() {
-        this.browser = await puppeteer.launch()
+        this.browser = await puppeteer.launch({headless: 'new'})
         this.page = await this.browser.newPage()
 
         // Log any page errors

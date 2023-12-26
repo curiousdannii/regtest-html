@@ -1,6 +1,6 @@
 {
   "name": "regtest-html",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "RegTest compatible test framework for HTML interpreters",
   "repository": "curiousdannii/regtest-html",
   "keywords": [
@@ -23,7 +23,7 @@
   "dependencies": {
     "http-server": "^14.1.1",
     "minimist": "^1.2.7",
-    "puppeteer": "^19.3.0"
+    "puppeteer": "^21.6.1"
   },
   "devDependencies": {
     "eslint": "^8.28.0"
