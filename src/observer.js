@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const record of records) {
             if (record.type === 'attributes') {
                 const input = $(record.target)
-                if (input.is(':disabled')) {
+                if (input.is('[aria-hidden=true],:disabled')) {
                     continue
                 }
                 regtest_data({
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Watch the Input (could be in a grid window too)
                     const input = $node.find('.Input')
                     if (input.length) {
-                        glkote_input_observer.observe(input[0], {attributeFilter: ['disabled']})
+                        glkote_input_observer.observe(input[0], {attributeFilter: ['aria-hidden', 'disabled']})
                         // And send its current state
                         if (!input.prop('disabled')) {
                             regtest_data({
