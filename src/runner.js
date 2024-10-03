@@ -49,7 +49,7 @@ export class Runner {
             new URL(options.interpreter_path)
             options.interpreter_url = options.interpreter_path
         }
-        catch (_) {
+        catch {
             options.interpreter_url = `http://localhost:${options.port}/${path.relative(cwd, options.interpreter_path)}`
         }
         options.gamefile_url = options.gamefile_path ? `http://localhost:${options.port}/${path.relative(cwd, options.gamefile_path)}` : ''

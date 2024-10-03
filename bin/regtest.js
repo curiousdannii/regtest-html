@@ -32,7 +32,7 @@ const options = {
     interpreter_path: argv.i || argv.interpreter,
     //list: argv.l || argv.list,
     pdf: argv.pdf,
-    port: 8080,
+    port: 8090,
     tests: argv._.slice(1),
     testfile_path,
     timeout: parseInt(argv.t || argv.timeout || '1', 10),

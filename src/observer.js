@@ -119,6 +119,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     glkote_window_obsever.observe(document.getElementById('windowport'), {childList: true})
 
+    // Observe the opening of the async dialog
+    const glkote_async_dialog_observer = new MutationObserver(records => {
+        for (const record of records) {
+            if (record.type === 'attributes') {
+                const dialog = $(record.target)
+                if (dialog.prop('open')) {
+                    regtest_data({
+                        type: 'input_requested',
+                        data: {
+                            type: 'fileref_prompt',
+                        },
+                    })
+                }
+            }
+        }
+    })
+
+    // Observe the body for the insertion of the async dialog
+    let async_dialog
+    const body_observer = new MutationObserver(records => {
+        for (const record of records) {
+            if (record.type === 'childList') {
+                for (const node of record.addedNodes) {
+                    const $node = $(node)
+                    if ($node.hasClass('asyncglk_file_dialog')) {
+                        async_dialog = $node
+                        glkote_async_dialog_observer.observe($node[0], {attributeFilter: ['open']})
+                        body_observer.disconnect()
+                    }
+                }
+            }
+        }
+    })
+    body_observer.observe(document.body, {childList: true})
+
     // Submit a Glk event
     window.regtest_event = data => {
         if (data.type === 'line') {
@@ -132,21 +167,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (data.type === 'fileref_prompt') {
             // Now to fill in the dialog form...
-            const accept = $('#dialog_accept')
-            if (accept.text() === 'Save') {
-                $('#dialog_infield').val(data.value)
-            }
-            else {
-                const test = new RegExp(`^${data.value}\\s`)
-                const options = $('#dialog_select option')
-                for (const option of options) {
-                    const $option = $(option)
-                    if (test.test($option.text())) {
-                        $option.prop('selected', true)
+            if (async_dialog) {
+                const form_button = async_dialog.find('> .inner > .foot button.submit')
+                if (form_button.text() === 'Save') {
+                    $('#filename_input').val(data.value)
+                }
+                else {
+                    const options = async_dialog.find('> .inner > div[role=listbox] button')
+                    for (const option of options) {
+                        const $option = $(option)
+                        if ($option.find('.name').text().startsWith(data.value + '.')) {
+                            $option.click()
+                        }
                     }
                 }
+                form_button.click()
             }
-            accept.click()
+            else {
+                const accept = $('#dialog_accept')
+                if (accept.text() === 'Save') {
+                    $('#dialog_infield').val(data.value)
+                }
+                else {
+                    const test = new RegExp(`^${data.value}\\s`)
+                    const options = $('#dialog_select option')
+                    for (const option of options) {
+                        const $option = $(option)
+                        if (test.test($option.text())) {
+                            $option.prop('selected', true)
+                        }
+                    }
+                }
+                accept.click()
+            }
         }
     }
 
